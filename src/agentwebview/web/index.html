@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentWebView</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#/home"><img src="/assets/logo.svg" alt="" width="28" height="28"><span>AgentWebView</span></a>
+      <nav id="nav">
+        <a href="#/home" data-route="home">Home</a>
+        <a href="#/providers" data-route="providers">Providers</a>
+        <a href="#/agents" data-route="agents">Agents</a>
+        <a href="#/knowledge" data-route="knowledge">Knowledge</a>
+        <a href="#/approvals" data-route="approvals">Approvals <span id="approval-count" class="pill hidden"></span></a>
+        <a href="#/activity" data-route="activity">Activity</a>
+        <a href="#/settings" data-route="settings">Settings</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span id="version"></span>
+        <span class="muted">Runs on this computer. No account needed.</span>
+      </div>
+    </aside>
+    <main id="main" tabindex="-1"></main>
+  </div>
+  <div id="toasts" aria-live="polite"></div>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+services:
+  agentwebview:
+    build:
+      context: .
+      args:
+        WITH_BROWSER: "0"   # "1" to include Chromium for the optional browser
+    image: agentwebview:local
+    ports:
+      - "127.0.0.1:8718:8718"   # this computer only: the dashboard has no login
+    volumes:
+      - agentwebview-data:/data
+    restart: unless-stopped
+
+volumes:
+  agentwebview-data:

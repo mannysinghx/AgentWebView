@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+
+# local data: the database, the encryption key and screenshots
+data/
+.agentwebview/
+*.db
+*.db-wal
+*.db-shm

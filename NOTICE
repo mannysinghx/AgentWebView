@@ -1,0 +1,9 @@
+AgentWebView
+Copyright 2026 AgentWebView contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party packages it depends on (FastAPI, Uvicorn, HTTPX, Pydantic, the MCP Python SDK,
+trafilatura, lxml, cryptography, python-multipart and, optionally, Playwright) keep their own
+licenses. Provider names (Exa, Tavily, Firecrawl, Jina, Parallel, Linkup, SerpApi, You.com) are
+trademarks of their owners; AgentWebView is not affiliated with them.
