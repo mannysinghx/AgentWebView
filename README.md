@@ -64,6 +64,7 @@ client; for reference:
 | Cursor | `~/.cursor/mcp.json`: `{"mcpServers": {"agentwebview": {"url": "http://127.0.0.1:8718/mcp", "headers": {"Authorization": "Bearer <token>"}}}}` |
 | VS Code | `.vscode/mcp.json`: `{"servers": {"agentwebview": {"type": "http", "url": "http://127.0.0.1:8718/mcp", "headers": {"Authorization": "Bearer <token>"}}}}` |
 | Claude Desktop (stdio) | `{"mcpServers": {"agentwebview": {"command": "agentwebview", "args": ["mcp"], "env": {"AGENTWEBVIEW_TOKEN": "<token>"}}}}` |
+| Code using Tavily | `TavilyClient(api_key="<token>", api_base_url="http://127.0.0.1:8718/compat/tavily")` ([details](#drop-in-for-code-that-uses-tavily)) |
 | Any HTTP client | `POST http://127.0.0.1:8718/v1/tasks` with `Authorization: Bearer <token>` |
 
 `agentwebview mcp` (stdio) runs the tools in its own process against the same data folder, so it works even when
@@ -95,6 +96,47 @@ Operations: `search` (coverage `owned_corpus` or `web_index`), `read_page` (`url
 `POST /v1/tasks/{id}/rating`, `POST /v1/route/preview`, `GET /v1/engines`, `GET /v1/me`, `GET /v1/collections`,
 `POST /v1/collections/{name}/documents`, and the browser endpoints under `/v1/browser/…`. Interactive reference:
 `http://127.0.0.1:8718/docs`.
+
+### Drop-in for code that uses Tavily
+
+Already calling Tavily? Change one line and keep the rest of your code:
+
+```python
+from tavily import TavilyClient
+
+client = TavilyClient(api_key="awv_…", api_base_url="http://127.0.0.1:8718/compat/tavily")
+client.search("latest MCP authorization spec", max_results=5)
+client.extract(["https://modelcontextprotocol.io/"])
+```
+
+The key is an agent token from the **Agents** screen. Each call is then routed across all your connected
+providers (free credit first, fallback when a key runs out), checked against that agent's limits and recorded on
+**Activity**. Any HTTP client works the same way:
+
+```bash
+curl -s http://127.0.0.1:8718/compat/tavily/search \
+  -H "Authorization: Bearer $AGENTWEBVIEW_TOKEN" -H "Content-Type: application/json" \
+  -d '{"query": "latest MCP authorization spec", "max_results": 5}'
+```
+
+Responses use Tavily's shape (`query`, `answer`, `images`, `results` with `title`, `url`, `content`, `score`,
+`raw_content`; for extract `results` with `url`, `raw_content` and `failed_results`) plus an `agentwebview` object:
+which provider answered, what it cost, whether it came from the cache, the parameters that were not applied, and a
+link to the receipt. Nothing is faked:
+
+| Parameter | Behaviour |
+|---|---|
+| `query`, `max_results` (0–20) | As Tavily. |
+| `include_domains`, `exclude_domains`, `include_domains_mode` | Applied to the results after the provider answers, so you can get fewer than `max_results`. |
+| `include_answer` | Not available (it needs Tavily's own AI): `answer` is `null`. |
+| `include_raw_content`, `include_images`, `include_favicon`, `include_usage`, `topic`, date and time filters, `country`, `search_depth` other than `basic`, `auto_parameters`, `exact_match` | Accepted, not applied, listed in `agentwebview.ignored_parameters`. |
+| extract `urls` (up to 20), `timeout` | As Tavily. Each URL is one page read, counted against the agent's limits. |
+| extract `extract_depth`, `format`, `query`, `chunks_per_source` | Accepted, not applied, listed as ignored. |
+| Errors | Tavily's status codes and `{"detail": {"error": …}}`, so the SDK raises its usual exceptions: 401 invalid key, 429 a limit or the providers' credit is used up, 403 forbidden, 400 bad request (including "no provider key added yet"). |
+
+`score` is the answering provider's ranking, and results differ from Tavily's own index whenever another provider
+answers. Tested with `tavily-python` 0.8.5 (`api_base_url`). Other libraries work if their Tavily integration lets
+you set the base URL; check yours.
 
 ## Providers
 

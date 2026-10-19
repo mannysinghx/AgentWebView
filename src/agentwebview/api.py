@@ -1,4 +1,5 @@
-"""The HTTP server: the dashboard, its API, the agent REST API (``/v1``) and the MCP endpoint (``/mcp``).
+"""The HTTP server: the dashboard, its API, the agent REST API (``/v1``), the MCP endpoint (``/mcp``) and the
+drop-in compatible endpoints (``/compat/tavily``).
 
 Security model for a dashboard without a login:
 
@@ -6,7 +7,7 @@ Security model for a dashboard without a login:
 * Requests whose Host header is not one of this server's names are refused (DNS-rebinding protection).
 * Dashboard API calls must carry the ``X-AgentWebView: 1`` header, which a web page on another site cannot send
   without a CORS preflight this server never approves, and a cross-site Origin is refused.
-* Agent endpoints (``/v1`` and ``/mcp``) need an agent token; the dashboard API never accepts one.
+* Agent endpoints (``/v1``, ``/mcp`` and ``/compat``) need an agent token; the dashboard API never accepts one.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from starlette.routing import Route
 
 from agentwebview import __version__, documents, mcp_server
+from agentwebview.compat import tavily
 from agentwebview.errors import ErrorCode, GatewayError, invalid
 from agentwebview.service import Service
 
@@ -72,6 +74,7 @@ def create_app(service: Service) -> FastAPI:
         app.router.routes.append(route)
         if isinstance(route, Route) and route.path == "/mcp":
             app.router.routes.append(Route("/mcp/", endpoint=route.endpoint))
+    app.include_router(tavily.router(service))
 
     # ------------------------------------------------------------------ middleware
 

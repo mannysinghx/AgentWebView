@@ -80,6 +80,26 @@ def client(service: Service) -> Iterator[TestClient]:
         yield c
 
 
+@pytest.fixture
+def live_server(service: Service) -> Iterator[str]:
+    """The real server on a random local port, for clients that make their own HTTP requests (SDKs)."""
+    import time
+
+    import uvicorn
+
+    server = uvicorn.Server(uvicorn.Config(create_app(service), host="127.0.0.1", port=0, log_level="warning"))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    deadline = time.monotonic() + 10
+    while not server.started and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert server.started, "the test server did not start"
+    port = server.servers[0].sockets[0].getsockname()[1]
+    yield f"http://127.0.0.1:{port}"
+    server.should_exit = True
+    thread.join(10)
+
+
 def fake(provider_id: str, handler: Callable[[httpx.Request], httpx.Response]) -> FakeProvider:
     fp = FakeProvider(handler)
     TEST_TRANSPORTS[provider_id] = httpx.MockTransport(fp)

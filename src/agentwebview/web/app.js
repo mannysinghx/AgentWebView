@@ -378,6 +378,7 @@ function connectionGuide(conn, token) {
     ['VS Code', 'Add to .vscode/mcp.json in your project:', JSON.stringify({ servers: { agentwebview: { type: 'http', url: mcp, headers: { Authorization: `Bearer ${t}` } } } }, null, 2)],
     ['Claude Desktop', 'Add to claude_desktop_config.json (needs the agentwebview command installed; it shares this data folder):', JSON.stringify({ mcpServers: { agentwebview: { command: 'agentwebview', args: ['mcp'], env: { AGENTWEBVIEW_TOKEN: t, AGENTWEBVIEW_DATA: conn.data_dir } } } }, null, 2)],
     ['Other MCP clients', 'Streamable HTTP MCP endpoint and header:', `URL:     ${mcp}\nHeader:  Authorization: Bearer ${t}`],
+    ['Code using Tavily', 'Point the Tavily client at AgentWebView; the rest of your code stays the same (search and extract):', `from tavily import TavilyClient\n\nclient = TavilyClient(\n    api_key="${t}",\n    api_base_url="${conn.base_url}/compat/tavily",\n)\nclient.search("latest MCP authorization spec")`],
     ['HTTP / curl', 'Call the REST API directly:', `curl -s ${conn.rest_url}/tasks \\\n  -H "Authorization: Bearer ${t}" -H "Content-Type: application/json" \\\n  -d '{"operation":"search","input":{"query":"latest MCP spec"},"requirements":{"coverage":"web_index"}}'`],
   ];
   const tabs = h('div', { class: 'tabs' });
